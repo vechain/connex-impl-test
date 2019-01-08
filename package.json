@@ -9,8 +9,12 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.5",
+    "@vechain/connex": "^0.6.0",
     "@vue/cli-plugin-typescript": "^3.2.0",
     "@vue/cli-service": "^3.2.0",
+    "chai": "^4.2.0",
     "typescript": "^3.0.0",
     "vue-template-compiler": "^2.5.21"
   },
