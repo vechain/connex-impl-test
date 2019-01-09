@@ -1,4 +1,4 @@
-const { ensureBlock, ensureStatus } = require('./validator')
+const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt } = require('./validator')
 const { expect } = require('chai')
 const { isSemVer } = require('./types')
 const { promiseWrapper } = require('./utils')
@@ -53,17 +53,17 @@ describe('connex.thor', () => {
         
     })
 
-    // describe('connex.thor.ticker', () => {
+    describe('connex.thor.ticker', () => {
 
-    //     it('connex.thor.ticker should be resolved without error thrown', (done) => {
-    //         connex.thor.ticker().next().then(() => {
-    //             done()
-    //         }).catch(e => {
-    //             done(e)
-    //         })
-    //     })
+        it('connex.thor.ticker should be resolved without error thrown', (done) => {
+            connex.thor.ticker().next().then(() => {
+                done()
+            }).catch(e => {
+                done(e)
+            })
+        })
 
-    // })
+    })
 
     describe('connex.thor.account', () => { })
 
@@ -92,7 +92,41 @@ describe('connex.thor', () => {
 
     })
 
-    describe('connex.thor.transaction', () => { })
+    describe('connex.thor.transaction', () => { 
+
+        it('getTransaction should return a transaction', (done) => {
+            promiseWrapper(connex.thor.transaction('0x9daa5b584a98976dfca3d70348b44ba5332f966e187ba84510efb810a0f9f851').get().then((tx) => {
+                ensureTransaction(tx)
+                done()
+            }), done)
+        })
+
+        it('getTransaction invalid block ID should return null', (done) => {
+            promiseWrapper(connex.thor.transaction('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff').get().then((tx) => {
+                expect(tx).to.be.null
+                done()
+            }), done)
+        })
+
+        it('getTransactionReceipt should return a transaction receipt', (done) => {
+            promiseWrapper(connex.thor.transaction('0x9daa5b584a98976dfca3d70348b44ba5332f966e187ba84510efb810a0f9f851').getReceipt().then((receipt) => {
+                ensureTransactionReceipt(receipt)
+            }).then(() => {
+                return connex.thor.transaction('0x316072e16a794a8f385e9f261a102c49947aa82a0355006289707b667e841cdc').getReceipt()
+            }).then((receipt) => {
+                ensureTransactionReceipt(receipt)
+                done()
+            }), done)
+        })
+
+        it('getTransactionReceipt invalid block ID should return null', (done) => {
+            promiseWrapper(connex.thor.transaction('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff').getReceipt().then((receipt) => {
+                expect(receipt).to.be.null
+                done()
+            }), done)
+        })
+
+    })
 
     describe('connex.thor.filter', () => { })
 

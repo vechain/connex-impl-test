@@ -7,15 +7,27 @@ export function isHexString(val: string) {
 }
 
 export function isHexBytes(val: string) {
-    return /^0x[0-9a-f]*$/i.test(val) && val.length % 2 === 0
+    return /^0x[0-9a-f]*$/i.test(val)
 }
 
 export function isAddress(val: string) {
     return /^0x[0-9a-f]{40}$/i.test(val)
 }
 
+export function isBytes4(val: string) {
+    return /^0x[0-9a-f]{8}$/i.test(val)
+}
+
+export function isBytes8(val: string) {
+    return /^0x[0-9a-f]{16}$/i.test(val)
+}
+
 export function isBytes32(val: string) {
     return /^0x[0-9a-f]{64}$/i.test(val)
+}
+
+export function isUint8(val: number) {
+    return val >= 0 && val < 2 ** 8 && Number.isInteger(val)
 }
 
 export function isUint32(val: number) {
