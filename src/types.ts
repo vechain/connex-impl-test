@@ -22,6 +22,14 @@ export function isUint32(val: number) {
     return val >= 0 && val < 2 ** 32 && Number.isInteger(val)
 }
 
-export function isValidSemVer(val: string) {
+export function isUint64(val: number) {
+    return val >= 0 && val < 2 ** 64 && Number.isInteger(val)
+}
+
+export function isInt(val: number) {
+    return Number.isInteger(val)
+}
+
+export function isSemVer(val: string) {
     return /[0-9]*\.[0-9*]\.[0-9]*$/.test(val)
 }
