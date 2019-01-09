@@ -68,22 +68,13 @@ export function ensureTransactionReceipt(val: Connex.Thor.Receipt) {
         if (output.contractAddress) expect(isAddress(output.contractAddress), 'output.contractAddress should be an address').to.be.true
         expect(output.events).to.be.an('array', 'output.events should be an array')
         expect(output.transfers).to.be.an('array', 'output.transfers should be an array')
-        
-
+        output.events.forEach(event => { 
+            ensureEventLog(event, false)
+        })
+        output.transfers.forEach(transfer => {
+            ensureTransferLog(transfer, false)
+        })
     })
-
-    // expect(isBytes8(val.blockRef), 'tx.blockRef should be a bytes8').to.be.true
-    // expect(isUint8(val.chainTag), 'tx.chainTag should be a uint8').to.be.true
-    // if (val.dependsOn) expect(isBytes32(val.dependsOn), 'tx.dependsOn should be a bytes32 or null').to.be.true
-    // expect(isUint32(val.expiration), 'tx.expiration should be a uint32').to.be.true
-    // expect(isUint64(val.gas), 'tx.gas should be a uint64').to.be.true
-    // expect(isUint8(val.gasPriceCoef), 'tx.gasPriceCoef should be a uint8').to.be.true
-    // expect(isBytes32(val.id), 'tx.id should be a bytes32').to.be.true
-    // expect(isHexBytes(val.nonce), 'tx.nonce should be a hex format string').to.be.true
-    // expect(isAddress(val.origin), 'block.origin should be an address').to.be.true
-    // expect(isInt(val.size), 'tx.size should be an int').to.be.true
-    // expect(val.clauses).to.be.an('array', 'block.clauses should be an array')
-    
 }
 
 export function ensureLogMeta(val: Connex.Thor.LogMeta) {
@@ -98,7 +89,7 @@ export function ensureEventLog(val: Connex.Thor.Event, checkMeta = true) {
     expect(isAddress(val.address), 'event.address should be an address').to.be.true
     expect(isHexBytes(val.data), 'event.data should be a hex format string').to.be.true
     expect(val.topics).to.be.an('array', 'event.topics should be an array')
-    val.topics.forEach((topic) => {
+    val.topics.forEach(topic => {
         expect(isBytes32(topic), 'event topic should be a bytes32').to.be.true
     })
     if(checkMeta) ensureLogMeta(val.meta as Connex.Thor.LogMeta)
