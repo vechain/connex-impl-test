@@ -122,3 +122,13 @@ export function ensureVMOutput(val: Connex.Thor.VMOutput) {
         ensureTransferLog(transfer)
     })
 }
+
+export function ensureEventCriteria(val: Connex.Thor.Event.Criteria) {
+    expect(isAddress(val.address), 'address should be an address').to.be.true
+    const keys: Array<keyof Connex.Thor.Event.Criteria> = ['topic0', 'topic1', 'topic2', 'topic3', 'topic4']
+    for (let key of keys){
+        if (val[key]) {
+            expect(isBytes32(val[key]), `${key} should be a bytes32`).to.be.true
+        }
+    }
+}

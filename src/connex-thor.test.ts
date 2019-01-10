@@ -1,6 +1,7 @@
-const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, ensureAccount, ensureVMOutput } = require('./validator')
+
+const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, ensureAccount, ensureVMOutput, ensureEventCriteria, ensureEventLog } = require('./validator')
 const { expect } = require('chai')
-const { isSemVer,isHexBytes } = require('./types')
+const { isSemVer, isHexBytes, isAddress } = require('./types')
 const { promiseWrapper } = require('./utils')
 
 
@@ -122,7 +123,37 @@ describe('connex.thor', () => {
 
         })
 
-        describe('connex.thor.account(...).event', () => { })
+        describe('connex.thor.account(...).event', () => { 
+
+            const transferEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "_from", "type": "address" }, { "indexed": true, "name": "_to", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" }], "name": "Transfer", "type": "event" }
+            const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
+            it('asCriteria should produce correct criteria', () => { 
+                const criteria = transferEvent.asCriteria({
+                    _to: '0xd3ae78222beadb038203be21ed5ce7c9b1bff602'
+                })
+                ensureEventCriteria(criteria)
+                expect(criteria).to.have.property('address', '0x0000000000000000000000000000456e65726779')
+                expect(criteria).to.have.property('topic0', '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef')
+                expect(criteria).to.have.property('topic2', '0x000000000000000000000000d3ae78222beadb038203be21ed5ce7c9b1bff602')
+            })
+
+            it('filter should return the transfer event log', (done) => {
+                const filter = transferEvent.filter([]).order('desc')
+                promiseWrapper(filter.apply(0,1).then(logs => { 
+                    expect(logs.length).to.be.equal(1)
+
+                    const log = logs[0]
+                    const decoded = logs[0].decoded as { [index: string]: any }
+                    
+                    ensureEventLog(log, true)
+                    expect(decoded).to.have.any.keys('0', '1', '2', '_from', '_to', '_value')
+                    expect(isAddress(decoded['_from']), '_from should be an address').to.be.true
+                    expect(isAddress(decoded['_to']), '_to should be an address').to.be.true
+                    done()
+                }), done)
+            })
+
+        })
 
     })
 
