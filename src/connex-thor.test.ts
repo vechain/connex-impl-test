@@ -126,8 +126,8 @@ describe('connex.thor', () => {
         describe('connex.thor.account(...).event', () => { 
 
             const transferEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "_from", "type": "address" }, { "indexed": true, "name": "_to", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" }], "name": "Transfer", "type": "event" }
-            const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
-            it('asCriteria should produce correct criteria', () => { 
+            it('asCriteria should produce correct criteria', () => {
+                const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
                 const criteria = transferEvent.asCriteria({
                     _to: '0xd3ae78222beadb038203be21ed5ce7c9b1bff602'
                 })
@@ -138,6 +138,7 @@ describe('connex.thor', () => {
             })
 
             it('filter should return the transfer event log', (done) => {
+                const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
                 const filter = transferEvent.filter([]).order('desc')
                 promiseWrapper(filter.apply(0,1).then(logs => { 
                     expect(logs.length).to.be.equal(1)
