@@ -1,5 +1,5 @@
 
-const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, ensureAccount, ensureVMOutput, ensureEventCriteria, ensureEventLog } = require('./validator')
+const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, ensureAccount, ensureVMOutput, ensureEventCriteria, ensureEventLog, ensureTransferLog } = require('./validator')
 const { expect } = require('chai')
 const { isSemVer, isHexBytes, isAddress } = require('./types')
 const { promiseWrapper } = require('./utils')
@@ -69,7 +69,7 @@ describe('connex.thor', () => {
     describe('connex.thor.account', () => {
 
         it('get account should return a account detail', done => {
-            promiseWrapper(connex.thor.account('0xe59D475Abe695c7f67a8a2321f33A856B0B4c71d').get().then(acc => {
+            promiseWrapper(connex.thor.account('0xe59d475abe695c7f67a8a2321f33a856b0b4c71d').get().then(acc => {
                 ensureAccount(acc)
                 done()
             }), done)
@@ -218,8 +218,47 @@ describe('connex.thor', () => {
 
     })
 
-    describe('connex.thor.filter', () => { })
+    describe('connex.thor.filter', () => { 
 
-    describe('connex.thor.explain', () => { })
+        it('filter transfer event should return the transfer log', (done) => {
+            const filter = connex.thor.filter('transfer').order('desc')
+            promiseWrapper(filter.apply(0, 1).then(logs => {
+                expect(logs.length).to.be.equal(1)
+                ensureTransferLog(logs[0], true)
+                done()
+            }), done)
+        })
+
+    })
+
+    describe('connex.thor.explain', () => { 
+
+        const transferABI = { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }
+        it('filter transfer event should return the transfer log', (done) => {
+            const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+            const energyClause = transferMethod.asClause('0xd3ae78222beadb038203be21ed5ce7c9b1bff602', 1)
+
+            const explainer = connex.thor.explain()
+            explainer
+                .gas(200000)
+                .caller('0xe59d475abe695c7f67a8a2321f33a856b0b4c71d')
+            
+            promiseWrapper(explainer.execute([
+                {
+                    to: '0xd3ae78222beadb038203be21ed5ce7c9b1bff602',
+                    value: 1,
+                    data: '0x'
+                },
+                energyClause
+            ]).then(outputs => {
+                expect(outputs.length).to.be.equal(2)
+                outputs.forEach(output => {
+                     ensureVMOutput(output)
+                })
+                done()
+            }), done)
+        })
+
+    })
 
 })
