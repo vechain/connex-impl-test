@@ -1,6 +1,6 @@
-const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt } = require('./validator')
+const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, ensureAccount, ensureVMOutput } = require('./validator')
 const { expect } = require('chai')
-const { isSemVer } = require('./types')
+const { isSemVer,isHexBytes } = require('./types')
 const { promiseWrapper } = require('./utils')
 
 
@@ -65,7 +65,66 @@ describe('connex.thor', () => {
 
     })
 
-    describe('connex.thor.account', () => { })
+    describe('connex.thor.account', () => {
+
+        it('get account should return a account detail', done => {
+            promiseWrapper(connex.thor.account('0xe59D475Abe695c7f67a8a2321f33A856B0B4c71d').get().then(acc => {
+                ensureAccount(acc)
+                done()
+            }), done)
+        })
+
+        it('get code should return code', done => {
+            promiseWrapper(connex.thor.account('0x0000000000000000000000000000456e65726779').getCode().then(code => {
+                expect(isHexBytes(code.code), 'code should be a hex format string').to.be.true
+                done()
+            }), done)
+        })
+
+        it('get storage should return storage', done => {
+            promiseWrapper(connex.thor.account('0x0000000000000000000000000000456e65726779').getStorage('0x0000000000000000000000000000000000000000000000000000000000000001').then(storage => {
+                expect(isHexBytes(storage.value), 'code should be a hex format string').to.be.true
+                done()
+            }), done)
+        })
+
+        describe('connex.thor.account(...).method', () => {
+
+            const nameABI = { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "pure", "type": "function" }
+            it('call name method should return name', (done) => {
+                const nameMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(nameABI)
+                promiseWrapper(nameMethod.call().then(output => {
+                    ensureVMOutput(output)
+                    expect(output.decoded).to.have.property('0', 'VeThor')
+                    done()
+                }), done)
+            })
+
+            it('call contract method set low gas should revert and gasUsed should be the setted gas', (done) => {
+                const nameMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(nameABI)
+                nameMethod.gas(1)
+                promiseWrapper(nameMethod.call().then(output => {
+                    ensureVMOutput(output)
+                    expect(output.gasUsed).to.be.equal(1)
+                    expect(output.reverted).to.be.true
+                    done()
+                }), done)
+            })
+
+            it('set value and convert to clause should return clause with correct value', () => {
+                const nameMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(nameABI)
+                nameMethod.value(0x64)
+                const clause = nameMethod.asClause()
+                expect(clause).to.have.property('to', '0x0000000000000000000000000000456e65726779')
+                expect(clause).to.have.property('value', '100')
+                expect(clause).to.have.property('data', '0x06fdde03')
+            })
+
+        })
+
+        describe('connex.thor.account(...).event', () => { })
+
+    })
 
     describe('connex.thor.block', () => { 
         

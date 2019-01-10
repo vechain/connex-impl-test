@@ -61,7 +61,7 @@ export function ensureTransactionReceipt(val: Connex.Thor.Receipt) {
     expect(isUint64(val.gasUsed), 'receipt.gasUsed should be a uint64').to.be.true
     expect(isHexBytes(val.paid), 'receipt.paid should be a hex format string').to.be.true
     expect(isHexBytes(val.reward), 'receipt.reward should be a hex format string').to.be.true
-    expect(val.reverted).to.be.an('boolean', 'receipt.revert should be a boolean')
+    expect(val.reverted).to.be.an('boolean', 'receipt.reverted should be a boolean')
     ensureLogMeta(val.meta)
     expect(val.outputs).to.be.an('array', 'tx.outputs should be an array')
     val.outputs.forEach(output => {
@@ -69,10 +69,10 @@ export function ensureTransactionReceipt(val: Connex.Thor.Receipt) {
         expect(output.events).to.be.an('array', 'output.events should be an array')
         expect(output.transfers).to.be.an('array', 'output.transfers should be an array')
         output.events.forEach(event => { 
-            ensureEventLog(event, false)
+            ensureEventLog(event)
         })
         output.transfers.forEach(transfer => {
-            ensureTransferLog(transfer, false)
+            ensureTransferLog(transfer)
         })
     })
 }
@@ -85,7 +85,7 @@ export function ensureLogMeta(val: Connex.Thor.LogMeta) {
     expect(isAddress(val.txOrigin), 'meta.txOrigin should be an address').to.be.true
 }
 
-export function ensureEventLog(val: Connex.Thor.Event, checkMeta = true) {
+export function ensureEventLog(val: Connex.Thor.Event, checkMeta = false) {
     expect(isAddress(val.address), 'event.address should be an address').to.be.true
     expect(isHexBytes(val.data), 'event.data should be a hex format string').to.be.true
     expect(val.topics).to.be.an('array', 'event.topics should be an array')
@@ -95,9 +95,30 @@ export function ensureEventLog(val: Connex.Thor.Event, checkMeta = true) {
     if(checkMeta) ensureLogMeta(val.meta as Connex.Thor.LogMeta)
 }
 
-export function ensureTransferLog(val: Connex.Thor.Transfer, checkMeta = true) {
+export function ensureTransferLog(val: Connex.Thor.Transfer, checkMeta = false) {
     expect(isAddress(val.sender), 'transfer.sender should be an address').to.be.true
     expect(isAddress(val.recipient), 'transfer.recipient should be an address').to.be.true
     expect(isHexBytes(val.amount), 'transfer.amount should be a hex format string').to.be.true
     if (checkMeta) ensureLogMeta(val.meta as Connex.Thor.LogMeta)
+}
+
+export function ensureAccount(val: Connex.Thor.Account) {
+    expect(isHexBytes(val.balance), 'account.balance should be a hex format string').to.be.true
+    expect(isHexBytes(val.energy), 'account.energy should be a hex format string').to.be.true
+    expect(val.hasCode).to.be.an('boolean', 'account.hasCode should be a boolean')
+}
+
+export function ensureVMOutput(val: Connex.Thor.VMOutput) {
+    expect(isHexBytes(val.data), 'data should be a hex format string').to.be.true
+    expect(isUint64(val.gasUsed), 'gasUsed should be a uint64').to.be.true
+    expect(val.reverted).to.be.an('boolean', 'reverted should be a boolean')
+    expect(val.vmError).to.be.a('string', 'vmError should be a string')
+    expect(val.events).to.be.an('array', 'events should be an array')
+    expect(val.transfers).to.be.an('array', 'transfers should be an array')
+    val.events.forEach(event => {
+        ensureEventLog(event)
+    })
+    val.transfers.forEach(transfer => {
+        ensureTransferLog(transfer)
+    })
 }
