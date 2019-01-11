@@ -3,10 +3,12 @@
 mocha.setup({
     ui: 'bdd',
     timeout: 60000,
+    slow: 300, 
     bail: true
 })
 
-require('./connex-thor.test')
+// mocha needs to be set-upped before import test codes
+require('./thor.test')
 
 // mocha.checkLeaks()
 mocha.run()
