@@ -2,7 +2,7 @@
 // mocha need to setup to bdd to make describe it work
 mocha.setup({
     ui: 'bdd',
-    timeout: 20000,
+    timeout: 60000,
     bail: true
 })
 

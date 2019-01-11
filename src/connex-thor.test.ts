@@ -1,7 +1,6 @@
-
 const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, ensureAccount, ensureVMOutput, ensureEventCriteria, ensureEventLog, ensureTransferLog } = require('./validator')
 const { expect } = require('chai')
-const { isSemVer, isHexBytes, isAddress } = require('./types')
+const { isSemVer, isHexBytes, isAddress, isBytes32 } = require('./types')
 const { promiseWrapper } = require('./utils')
 
 
@@ -261,5 +260,80 @@ describe('connex.thor', () => {
         })
 
     })
+
+})
+
+describe('connex.vendor', () => {
+
+    it('acquire singing service should return signing service without error', () => {
+        let txSigner = connex.vendor.sign('tx')
+        expect(txSigner).to.not.equal(undefined)
+        let certSigner = connex.vendor.sign('cert')
+        expect(certSigner).to.not.equal(undefined)
+    })
+
+    it('tx signing should return txid and signer', (done) => {
+        let txSigner = connex.vendor.sign('tx')
+        promiseWrapper(txSigner.request([{
+            to: '0x7567d83b7b8d80addcb281a71d54fc7b3364ffed',
+            value: '10000000000000000',
+            data: '0x',
+        }]).then(ret => { 
+            expect(isAddress(ret.signer), 'signer should be an address').to.be.true
+            expect(isBytes32(ret.txid), 'txid should be an bytes32').to.be.true
+            done()
+        }), done)
+    })
+
+    it('specify signer should signed by the signer', (done) => {
+        let txSigner = connex.vendor.sign('tx')
+        txSigner.signer('0x7567d83b7b8d80addcb281a71d54fc7b3364ffed')
+        promiseWrapper(txSigner.request([{
+            to: '0x7567d83b7b8d80addcb281a71d54fc7b3364ffed',
+            value: '10000000000000000',
+            data: '0x',
+        }]).then(ret => {
+            expect(ret.signer).to.be.equal('0x7567d83b7b8d80addcb281a71d54fc7b3364ffed')
+            done()
+        }), done)
+    })
+
+    it('identification cert signing should return valid cert response', (done) => {
+        let certSigner = connex.vendor.sign('cert')
+        promiseWrapper(certSigner.request({
+            purpose: 'identification',
+            payload: {
+                type: 'text',
+                content: 'random generated string'
+            }
+        }).then(ret => {
+            expect(isHexBytes(ret.signature), 'signature be a hex format string').to.be.true
+            expect(ret.annex.domain).to.be.equal(location.hostname)
+            expect((connex.thor.status.head.timestamp - ret.annex.timestamp)%10)
+            expect(ret.annex.timestamp).to.be.below((new Date().getTime()) / 1000).to.be.above((new Date().getTime()) / 1000-60)
+            expect(isAddress(ret.annex.signer), 'signer should be an address').to.be.true
+            done()
+        }), done)
+    })
+
+    it('agreement cert signing should return valid cert response', (done) => {
+        let certSigner = connex.vendor.sign('cert')
+        promiseWrapper(certSigner.request({
+            purpose: 'agreement',
+            payload: {
+                type: 'text',
+                content: 'agreement'
+            }
+        }).then(ret => {
+            expect(isHexBytes(ret.signature), 'signature be a hex format string').to.be.true
+            expect(ret.annex.domain).to.be.equal(location.hostname)
+            expect((connex.thor.status.head.timestamp - ret.annex.timestamp) % 10)
+            expect(ret.annex.timestamp).to.be.below((new Date().getTime()) / 1000).to.be.above((new Date().getTime()) / 1000 - 60)
+            expect(isAddress(ret.annex.signer), 'signer should be an address').to.be.true
+            done()
+        }), done)
+    })
+
+
 
 })
