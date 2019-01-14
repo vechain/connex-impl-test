@@ -1,4 +1,12 @@
-# connex-impl-test
+# Connex Implementation Test
+
+This is a `BDD` test for connex client implementation.
+
+## Requirements
+
++ Running under `TestNet`
++ `Connex.Vendor` needs user to interact (Signing should be complected in 40 seconds or it will fail)
++ `0x7567d83b7b8d80addcb281a71d54fc7b3364ffed` need to be added to wallet
 
 ## Project setup
 ```

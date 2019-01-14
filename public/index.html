@@ -8,11 +8,33 @@
     <title>Connex Implementation Test</title>
     <link href="https://unpkg.com/mocha@5.2.0/mocha.css" rel="stylesheet" />
     <script src="https://unpkg.com/mocha@5.2.0/mocha.js"></script>
+    <style>
+        #desc{
+            margin-top: 60px;
+            padding-left: 65px;
+        }
+        #mocha{
+            margin-top: 10px;
+        }
+    </style>
   </head>
   <body>
     <noscript>
       <strong>We're sorry but connex-impl-test doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
+    <div id="desc">
+        <h2 id="toc_0">Connex Implementation Test</h2>
+
+        <p>This is a <code>BDD</code> test for connex client implementation.</p>
+
+        <h3 id="toc_1">Requirements</h3>
+
+        <ul>
+            <li>Running under <code>TestNet</code></li>
+            <li><code>Connex.Vendor</code> needs user to interact (Signing should be complected in 40 seconds or it will fail)</li>
+            <li><code>0x7567d83b7b8d80addcb281a71d54fc7b3364ffed</code> need to be added to wallet</li>
+        </ul>
+    </div>
     <div id="mocha"></div>
     <!-- built files will be auto injected -->
   </body>
