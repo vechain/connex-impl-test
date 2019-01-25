@@ -356,6 +356,24 @@ describe('connex.vendor', () => {
         }), done)
     })
 
-
+    it('user cancel should throw rejected error', (done) => {
+        let certSigner = connex.vendor.sign('cert')
+        certSigner.request({
+            purpose: 'identification',
+            payload: {
+                type: 'text',
+                content: 'Please decline this request\nPlease decline this request\nPlease decline this request\nPlease decline this request'
+            }
+        }).then(() => {
+            console.log('then')
+            done(new Error('User decline should throw error'))
+        }).catch(err => {
+            expect(err.name).to.be.equal('Rejected')
+            expect(err.message).to.be.equal('user cancelled')
+            done()
+        }).catch(err => {
+            done(err)
+        })
+    })
 
 })
