@@ -2,7 +2,7 @@ const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, 
 const { expect } = require('chai')
 const { isSemVer, isHexBytes, isAddress, isBytes32 } = require('./types')
 const { promiseWrapper } = require('./utils')
-
+const { Certificate } =require('thor-devkit')
 
 describe('connex', () => {
 
@@ -312,6 +312,17 @@ describe('connex.vendor', () => {
             expect((connex.thor.status.head.timestamp - ret.annex.timestamp)%10)
             expect(ret.annex.timestamp).to.be.below((new Date().getTime()) / 1000).to.be.above((new Date().getTime()) / 1000-60)
             expect(isAddress(ret.annex.signer), 'signer should be an address').to.be.true
+            Certificate.verify({
+                purpose: 'identification',
+                payload: {
+                    type: 'text',
+                    content: 'random generated string'
+                },
+                domain: ret.annex.domain,
+                timestamp: ret.annex.timestamp,
+                signer: ret.annex.signer,
+                signature: ret.signature
+            })
             done()
         }), done)
     })
@@ -330,6 +341,17 @@ describe('connex.vendor', () => {
             expect((connex.thor.status.head.timestamp - ret.annex.timestamp) % 10)
             expect(ret.annex.timestamp).to.be.below((new Date().getTime()) / 1000).to.be.above((new Date().getTime()) / 1000 - 60)
             expect(isAddress(ret.annex.signer), 'signer should be an address').to.be.true
+            Certificate.verify({
+                purpose: 'agreement',
+                payload: {
+                    type: 'text',
+                    content: 'agreement'
+                },
+                domain: ret.annex.domain,
+                timestamp: ret.annex.timestamp,
+                signer: ret.annex.signer,
+                signature: ret.signature
+            })
             done()
         }), done)
     })
