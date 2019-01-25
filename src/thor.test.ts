@@ -33,7 +33,7 @@ describe('connex.thor', () => {
     describe('connex.thor.genesis', () => { 
         
         it('ensure connex.thor.genesis object properties', () => {
-            expect(connex.thor.genesis).to.have.all.keys('beneficiary', 'gasLimit', 'gasUsed', 'id', 'number', 'parentID', 'receiptsRoot', 'signer', 'size', 'stateRoot', 'timestamp', 'totalScore', 'transactions','txsRoot')
+            expect(connex.thor.genesis).to.have.all.keys('beneficiary', 'gasLimit', 'gasUsed', 'id', 'isTrunk', 'number', 'parentID', 'receiptsRoot', 'signer', 'size', 'stateRoot', 'timestamp', 'totalScore', 'transactions','txsRoot')
         })
 
         it('connex.thor.genesis ID should be testnet\'s genesis ID', () => {
