@@ -11,19 +11,19 @@ export function isHexBytes(val: string) {
 }
 
 export function isAddress(val: string) {
-    return /^0x[0-9a-f]{40}$/i.test(val)
+    return /^0x[0-9a-f]{40}$/.test(val)
 }
 
 export function isBytes4(val: string) {
-    return /^0x[0-9a-f]{8}$/i.test(val)
+    return /^0x[0-9a-f]{8}$/.test(val)
 }
 
 export function isBytes8(val: string) {
-    return /^0x[0-9a-f]{16}$/i.test(val)
+    return /^0x[0-9a-f]{16}$/.test(val)
 }
 
 export function isBytes32(val: string) {
-    return /^0x[0-9a-f]{64}$/i.test(val)
+    return /^0x[0-9a-f]{64}$/.test(val)
 }
 
 export function isUint8(val: number) {
