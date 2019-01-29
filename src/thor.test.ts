@@ -412,26 +412,40 @@ describe('error type and message', () => {
 
     })
 
-    // describe('connex.thor.filter', () => { 
+    describe('connex.thor.filter', () => { 
 
-
-
-    // })
-
-    it('connex.vendor:user decline should throw rejected error', (done) => {
-        let certSigner = connex.vendor.sign('cert')
-        certSigner.request({
-            purpose: 'identification',
-            payload: {
-                type: 'text',
-                content: 'Please decline this request\nPlease decline this request\nPlease decline this request\nPlease decline this request'
+        it('filter:invalid kind should throw ', done => {
+            try {
+                connex.thor.filter('invalid kind' as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal('\'kind\' unsupported filter kind')
+                done()
             }
-        }).then(() => {
-            done(new Error('User decline should throw error'))
-        }).catch(err => {
-            expect(err.name).to.be.equal('Rejected')
-            expect(err.message).to.be.equal('user cancelled')
-            done()
+        })
+
+    })
+
+    describe('connex.vendor', () => {
+
+        it('connex.vendor:user decline should throw rejected error', (done) => {
+            let certSigner = connex.vendor.sign('cert')
+            certSigner.request({
+                purpose: 'identification',
+                payload: {
+                    type: 'text',
+                    content: 'Please decline this request\nPlease decline this request\nPlease decline this request\nPlease decline this request'
+                }
+            }).then(() => {
+                done(new Error('User decline should throw error'))
+            }).catch(err => {
+                expect(err.name).to.be.equal('Rejected')
+                expect(err.message).to.be.equal('user cancelled')
+                done()
+            }).catch(err => {
+                done(err)
+            })
         })
     })
     
