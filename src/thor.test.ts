@@ -136,8 +136,9 @@ describe('connex.thor', () => {
                 expect(criteria).to.have.property('topic2', '0x000000000000000000000000d3ae78222beadb038203be21ed5ce7c9b1bff602')
             })
 
-            it('filter should return the transfer event log', (done) => {
-                const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
+            const candidateEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "nodeMaster", "type": "address" }, { "indexed": false, "name": "action", "type": "bytes32" }], "name": "Candidate", "type": "event" }
+            it('filter should return the candidate event log', (done) => {
+                const transferEvent = connex.thor.account('0x0000000000000000000000417574686f72697479').event(candidateEventABI)
                 const filter = transferEvent.filter([]).order('desc')
                 promiseWrapper(filter.apply(0,1).then(logs => { 
                     expect(logs.length).to.be.equal(1)
@@ -146,9 +147,9 @@ describe('connex.thor', () => {
                     const decoded = logs[0].decoded as { [index: string]: any }
                     
                     ensureEventLog(log, true)
-                    expect(decoded).to.have.any.keys('0', '1', '2', '_from', '_to', '_value')
-                    expect(isAddress(decoded['_from']), '_from should be an address').to.be.true
-                    expect(isAddress(decoded['_to']), '_to should be an address').to.be.true
+                    expect(decoded).to.have.any.keys('0', '1', 'action', 'nodeMaster')
+                    expect(isAddress(decoded['nodeMaster']), 'nodeMaster should be an address').to.be.true
+                    expect(isBytes32(decoded['action']), 'action should be an address').to.be.true
                     done()
                 }), done)
             })
