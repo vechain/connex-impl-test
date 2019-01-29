@@ -370,7 +370,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             }catch(err){
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal('\'key\' expected bytes32 in hex string')
+                expect(err.message).to.be.equal(`'key' expected bytes32 in hex string`)
                 done()
             }
         })
@@ -381,7 +381,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal('\'abi\' is invalid')
+                expect(err.message).to.be.equal(`'abi' is invalid`)
                 done()
             }
         })
@@ -393,7 +393,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal('\'indexed\' can not be encoded')
+                expect(err.message).to.be.equal(`'indexed' can not be encoded`)
                 done()
             }
         })
@@ -405,7 +405,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal('\'indexed\' can not be encoded')
+                expect(err.message).to.be.equal(`'indexed' can not be encoded`)
                 done()
             }
         })
@@ -420,7 +420,170 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal('\'kind\' unsupported filter kind')
+                expect(err.message).to.be.equal(`'kind' unsupported filter kind`)
+                done()
+            }
+        })
+
+        it('event filter:invalid address should throw ', done => {
+            try {
+                const filter = connex.thor.filter('event')
+                filter.criteria([{
+                    address: "invalid address"
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'criteria#0.address' expected address`)
+                done()
+            }
+        })
+
+        it('event filter:invalid topic2 should throw ', done => {
+            try {
+                const filter = connex.thor.filter('event')
+                filter.criteria([{
+                    topic2: "invalid bytes32"
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'criteria#0.topic2' expected bytes32`)
+                done()
+            }
+        })
+
+        it('transfer filter:invalid txOrigin should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.criteria([{
+                    txOrigin: "invalid txOrigin"
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'criteria#0.txOrigin' expected address`)
+                done()
+            }
+        })
+
+        it('transfer filter:invalid sender should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.criteria([{
+                    sender: "invalid sender"
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'criteria#0.sender' expected address`)
+                done()
+            }
+        })
+    
+        it('transfer filter:invalid recipient should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.criteria([{
+                    recipient: "invalid recipient"
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'criteria#0.recipient' expected address`)
+                done()
+            }
+        })
+
+        it('filter:invalid range should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.range(null as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'range' expected object`)
+                done()
+            }
+        })
+
+        it('filter:invalid range.unit should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.range({
+                    unit: 'invalid unit'
+                } as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'range.unit' expected 'block' or 'time'`)
+                done()
+            }
+        })
+
+        it('filter:invalid range.from should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.range({
+                    unit: 'block',
+                    to: 100,
+                    from: 'invalid from'
+                } as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'range.from' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('filter:invalid range.to should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.range({
+                    unit: 'block',
+                    to: 'invalid to'
+                } as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'range.to' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('filter:invalid order should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.order('invalid order' as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'order' expected 'asc' or 'desc'`)
+                done()
+            }
+        })
+
+        it('filter:invalid offset should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.apply(-1, -1)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'offset' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('filter:invalid offset should throw ', done => {
+            try {
+                const filter = connex.thor.filter('transfer')
+                filter.apply(0, 1000)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(/\'limit\'\ expected\ integer\ in\ \[0,/.test(err.message)).to.be.equal(true, `Error message should be start with 'limit' expected integer in [0,`)
                 done()
             }
         })
