@@ -2,7 +2,10 @@ const { ensureBlock, ensureStatus, ensureTransaction, ensureTransactionReceipt, 
 const { expect } = require('chai')
 const { isSemVer, isHexBytes, isAddress, isBytes32 } = require('./types')
 const { promiseWrapper } = require('./utils')
-const { Certificate } =require('thor-devkit')
+const { Certificate } = require('thor-devkit')
+
+const transferEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "_from", "type": "address" }, { "indexed": true, "name": "_to", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" }], "name": "Transfer", "type": "event" }
+const candidateEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "nodeMaster", "type": "address" }, { "indexed": false, "name": "action", "type": "bytes32" }], "name": "Candidate", "type": "event" }
 
 describe('connex', () => {
 
@@ -124,7 +127,6 @@ describe('connex.thor', () => {
 
         describe('connex.thor.account(...).event', () => { 
 
-            const transferEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "_from", "type": "address" }, { "indexed": true, "name": "_to", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" }], "name": "Transfer", "type": "event" }
             it('asCriteria should produce correct criteria', () => {
                 const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
                 const criteria = transferEvent.asCriteria({
@@ -136,7 +138,6 @@ describe('connex.thor', () => {
                 expect(criteria).to.have.property('topic2', '0x000000000000000000000000d3ae78222beadb038203be21ed5ce7c9b1bff602')
             })
 
-            const candidateEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "nodeMaster", "type": "address" }, { "indexed": false, "name": "action", "type": "bytes32" }], "name": "Candidate", "type": "event" }
             it('filter should return the candidate event log', (done) => {
                 const transferEvent = connex.thor.account('0x0000000000000000000000417574686f72697479').event(candidateEventABI)
                 const filter = transferEvent.filter([]).order('desc')
@@ -357,7 +358,67 @@ describe('connex.vendor', () => {
         }), done)
     })
 
-    it('user cancel should throw rejected error', (done) => {
+})
+
+describe('error type and message', () => {
+
+    describe('connex.thor.account(...)', () => {
+        
+        it('getStorage:get storage with invalid key should throw', done => {
+            try {
+                connex.thor.account('0x0000000000000000000000000000456e65726779').getStorage('not bytes32 in hex')
+                done(new Error('Should throw error'))
+            }catch(err){
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal('\'key\' expected bytes32 in hex string')
+                done()
+            }
+        })
+
+        it('event:invalid abi should throw ', done => {
+            try {
+                connex.thor.account('0x0000000000000000000000000000456e65726779').event({wrong: 'invalid abi'})
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal('\'abi\' is invalid')
+                done()
+            }
+        })
+
+        it('event().asCriteria:invalid indexed parameter should throw ', done => {
+            try {
+                const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
+                transferEvent.asCriteria({_from: "invalid from"})
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal('\'indexed\' can not be encoded')
+                done()
+            }
+        })
+
+        it('event().filter:invalid indexed parameter should throw ', done => {
+            try {
+                const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
+                transferEvent.filter([{ _from: "invalid from" }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal('\'indexed\' can not be encoded')
+                done()
+            }
+        })
+
+    })
+
+    // describe('connex.thor.filter', () => { 
+
+
+
+    // })
+
+    it('connex.vendor:user decline should throw rejected error', (done) => {
         let certSigner = connex.vendor.sign('cert')
         certSigner.request({
             purpose: 'identification',
@@ -366,15 +427,12 @@ describe('connex.vendor', () => {
                 content: 'Please decline this request\nPlease decline this request\nPlease decline this request\nPlease decline this request'
             }
         }).then(() => {
-            console.log('then')
             done(new Error('User decline should throw error'))
         }).catch(err => {
             expect(err.name).to.be.equal('Rejected')
             expect(err.message).to.be.equal('user cancelled')
             done()
-        }).catch(err => {
-            done(err)
         })
     })
-
+    
 })
