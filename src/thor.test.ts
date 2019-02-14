@@ -6,6 +6,8 @@ const { Certificate } = require('thor-devkit')
 
 const transferEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "_from", "type": "address" }, { "indexed": true, "name": "_to", "type": "address" }, { "indexed": false, "name": "_value", "type": "uint256" }], "name": "Transfer", "type": "event" }
 const candidateEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "nodeMaster", "type": "address" }, { "indexed": false, "name": "action", "type": "bytes32" }], "name": "Candidate", "type": "event" }
+const nameABI = { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "pure", "type": "function" }
+const transferABI = { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }
 
 describe('connex', () => {
 
@@ -93,7 +95,6 @@ describe('connex.thor', () => {
 
         describe('connex.thor.account(...).method', () => {
 
-            const nameABI = { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "pure", "type": "function" }
             it('call name method should return name', (done) => {
                 const nameMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(nameABI)
                 promiseWrapper(nameMethod.call().then(output => {
@@ -223,7 +224,7 @@ describe('connex.thor', () => {
     describe('connex.thor.filter', () => { 
 
         it('filter transfer event should return the transfer log', (done) => {
-            const filter = connex.thor.filter('transfer').order('desc')
+            const filter = connex.thor.filter('transfer').order('desc').criteria([{ txOrigin: '0xe59D475Abe695c7f67a8a2321f33A856B0B4c71d' }])
             promiseWrapper(filter.apply(0, 1).then(logs => {
                 expect(logs.length).to.be.equal(1)
                 ensureTransferLog(logs[0], true)
@@ -235,8 +236,7 @@ describe('connex.thor', () => {
 
     describe('connex.thor.explain', () => { 
 
-        const transferABI = { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }
-        it('filter transfer event should return the transfer log', (done) => {
+        it('explain should return valid vmoutput', (done) => {
             const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
             const energyClause = transferMethod.asClause('0xd3ae78222beadb038203be21ed5ce7c9b1bff602', 1)
 
@@ -289,13 +289,13 @@ describe('connex.vendor', () => {
 
     it('specify signer should signed by the signer', (done) => {
         let txSigner = connex.vendor.sign('tx')
-        txSigner.signer('0x7567d83b7b8d80addcb281a71d54fc7b3364ffed')
+        txSigner.signer('0xf2e7617c45c42967fde0514b5aa6bba56e3e11dd')
         promiseWrapper(txSigner.request([{
             to: '0x7567d83b7b8d80addcb281a71d54fc7b3364ffed',
             value: '10000000000000000',
             data: '0x',
         }]).then(ret => {
-            expect(ret.signer).to.be.equal('0x7567d83b7b8d80addcb281a71d54fc7b3364ffed')
+            expect(ret.signer).to.be.equal('0xf2e7617c45c42967fde0514b5aa6bba56e3e11dd')
             done()
         }), done)
     })
@@ -362,6 +362,181 @@ describe('connex.vendor', () => {
 
 describe('error type and message', () => {
 
+    describe('connex.thor', () => { 
+
+        it('account: invalid address should throw', done => {
+            try {
+                connex.thor.account('invalid address')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'addr' expected address type`)
+                done()
+            }
+        })
+
+        it('block: invalid block id should throw', done => {
+            try {
+                connex.thor.block('invalid block id')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'revision' expected bytes32 in hex string`)
+                done()
+            }
+        })
+
+        it('block: non-neg block number should throw', done => {
+            try {
+                connex.thor.block(-1)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'revision' expected non-neg 32bit integer`)
+                done()
+            }
+        })
+
+        it('block: invalid revision should throw', done => {
+            try {
+                connex.thor.block(true as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'revision' has invalid type`)
+                done()
+            }
+        })
+
+        it('transaction: invalid tx id should throw', done => {
+            try {
+                connex.thor.transaction('invalid bytes32')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'id' expected bytes32 in hex string`)
+                done()
+            }
+        })
+
+    })
+
+    describe('connex.thor.explain', () => {
+
+        it('caller: invalid address should throw', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.caller('invalid address')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'addr' expected address type`)
+                done()
+            }
+        })
+
+        it('gas:non-neg gas should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.gas(-1)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'gas' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('gasPrice:invalid string value should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.gasPrice('0b00')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'gasPrice' expected integer in hex/dec string`)
+                done()
+            }
+        })
+
+        it('execute:non-array clauses should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.execute({} as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'clauses' expected array`)
+                done()
+            }
+        })
+
+        it('execute:invalid address of clause.to should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.execute([{
+                    to: 'invalid address',
+                    value: 0,
+                    data: '0x'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'clauses#0.to' expected null or address`)
+                done()
+            }
+        })
+
+        it('execute:non-neg clause.value should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.execute([{
+                    to: null,
+                    value: -1,
+                    data: '0x'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'clauses#0.value' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('execute:invalid clause.value should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.execute([{
+                    to: null,
+                    value: '0b00',
+                    data: '0x'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'clauses#0.value' expected integer in hex/dec string`)
+                done()
+            }
+        })
+
+        it('execute:invalid clause.data should throw ', done => {
+            try {
+                const explainer = connex.thor.explain()
+                explainer.execute([{
+                    to: null,
+                    value: 0,
+                    data: 'invalid data'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'clauses#0.data' expected bytes in hex string`)
+                done()
+            }
+        })
+
+    })
+
     describe('connex.thor.account(...)', () => {
         
         it('getStorage:get storage with invalid key should throw', done => {
@@ -386,7 +561,7 @@ describe('error type and message', () => {
             }
         })
 
-        it('event().asCriteria:invalid indexed parameter should throw ', done => {
+        it('event(...).asCriteria:invalid indexed parameter should throw ', done => {
             try {
                 const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
                 transferEvent.asCriteria({_from: "invalid from"})
@@ -398,7 +573,7 @@ describe('error type and message', () => {
             }
         })
 
-        it('event().filter:invalid indexed parameter should throw ', done => {
+        it('event(...).filter:invalid indexed parameter should throw ', done => {
             try {
                 const transferEvent = connex.thor.account('0x0000000000000000000000000000456e65726779').event(transferEventABI)
                 transferEvent.filter([{ _from: "invalid from" }])
@@ -406,6 +581,78 @@ describe('error type and message', () => {
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
                 expect(err.message).to.be.equal(`'indexed' can not be encoded`)
+                done()
+            }
+        })
+
+        it('method(...).value:non-neg value should throw ', done => {
+            try {
+                const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+                transferMethod.value(-1)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'value' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('method(...).value:invalid string value should throw ', done => {
+            try {
+                const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+                transferMethod.value('0b01')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'value' expected integer in hex/dec string`)
+                done()
+            }
+        })
+
+        it('method(...).caller:invalid address should throw ', done => {
+            try {
+                const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+                transferMethod.caller('invalid address')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'caller' expected address type`)
+                done()
+            }
+        })
+
+        it('method(...).gas:non-neg gas should throw ', done => {
+            try {
+                const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+                transferMethod.gas(-1)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'gas' expected non-neg safe integer`)
+                done()
+            }
+        })
+
+        it('method(...).gasPrice:invalid string value should throw ', done => {
+            try {
+                const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+                transferMethod.gasPrice('0b00')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'gasPrice' expected integer in hex/dec string`)
+                done()
+            }
+        })
+
+        it('method(...).asClause:invalid string value should throw ', done => {
+            try {
+                const transferMethod = connex.thor.account('0x0000000000000000000000000000456e65726779').method(transferABI)
+                transferMethod.asClause('invalid address', 'invalid amount')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'args' can not be encoded`)
                 done()
             }
         })
@@ -592,8 +839,181 @@ describe('error type and message', () => {
 
     describe('connex.vendor', () => {
 
-        it('connex.vendor:user decline should throw rejected error', (done) => {
-            let certSigner = connex.vendor.sign('cert')
+        it('invalid type should throw ', done => {
+            try {
+                connex.vendor.sign('invalid' as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`unsupported message kind`)
+                done()
+            }
+        })
+
+        it('tx-request:invalid to should throw ', done => {
+            const txSigner = connex.vendor.sign('tx')
+            try {
+                txSigner.request([{
+                    to: 'invalid address',
+                    value: 0,
+                    data: '0x'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`#0.to: expected hex string`)
+                done()
+            }
+        })
+
+        it('tx-request:invalid data should throw ', done => {
+            const txSigner = connex.vendor.sign('tx')
+            try {
+                txSigner.request([{
+                    to: null,
+                    value: 0,
+                    data: 'invalid data'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`#0.data: expected hex string`)
+                done()
+            }
+        })
+
+        it('tx-request:invalid data should throw ', done => {
+            const txSigner = connex.vendor.sign('tx')
+            try {
+                txSigner.request([{
+                    to: null,
+                    value: -1,
+                    data: 'invalid data'
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`#0.value: expected non-negative safe integer`)
+                done()
+            }
+        })
+
+        it('tx-request:invalid comment should throw ', done => {
+            const txSigner = connex.vendor.sign('tx')
+            try {
+                txSigner.request([{
+                    to: null,
+                    value: 0,
+                    data: '0x',
+                    comment: {} as any
+                }])
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'#0.comment' expected string`)
+                done()
+            }
+        })
+
+        it('tx-request.comment:invalid comment should throw ', done => {
+            const txSigner = connex.vendor.sign('tx')
+            try {
+                txSigner.comment({} as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'comment' expected string`)
+                done()
+            }
+        })
+
+        it('tx-request:invalid signer should throw ', done => {
+            const txSigner = connex.vendor.sign('tx')
+            try {
+                txSigner.signer('invalid address')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'signer' expected address type`)
+                done()
+            }
+        })
+
+        it('cert-request:invalid signer should throw ', done => {
+            const txSigner = connex.vendor.sign('cert')
+            try {
+                txSigner.signer('invalid address')
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'signer' expected address type`)
+                done()
+            }
+        })
+
+        it('cert-request:invalid message should throw ', done => {
+            const txSigner = connex.vendor.sign('cert')
+            try {
+                txSigner.request(0 as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`expected object`)
+                done()
+            }
+        })
+
+        it('cert-request:invalid purpose should throw ', done => {
+            const txSigner = connex.vendor.sign('cert')
+            try {
+                txSigner.request({
+                    purpose: 'invalid'
+                } as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'purpose' expected 'agreement' or 'identification'`)
+                done()
+            }
+        })
+
+        it('cert-request:invalid payload.type should throw ', done => {
+            const txSigner = connex.vendor.sign('cert')
+            try {
+                txSigner.request({
+                    purpose: 'identification',
+                    payload: {
+                        type: 'invalid'
+                    }
+                } as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'payload.type' unsupported`)
+                done()
+            }
+        })
+
+        it('cert-request:invalid payload.content should throw ', done => {
+            const txSigner = connex.vendor.sign('cert')
+            try {
+                txSigner.request({
+                    purpose: 'identification',
+                    payload: {
+                        type: 'text',
+                        content: 0
+                    }
+                } as any)
+                done(new Error('Should throw error'))
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'payload.content' expected string`)
+                done()
+            }
+        })
+
+        it('request:user decline should throw rejected error', (done) => {
+            const certSigner = connex.vendor.sign('cert')
             certSigner.request({
                 purpose: 'identification',
                 payload: {
