@@ -4,7 +4,7 @@ mocha.setup({
     ui: 'bdd',
     timeout: 60000,
     slow: 300, 
-    bail: true
+    bail: false
 })
 
 // mocha needs to be set-upped before import test codes
