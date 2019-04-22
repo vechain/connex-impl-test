@@ -8,6 +8,7 @@ const transferEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "na
 const candidateEventABI = { "anonymous": false, "inputs": [{ "indexed": true, "name": "nodeMaster", "type": "address" }, { "indexed": false, "name": "action", "type": "bytes32" }], "name": "Candidate", "type": "event" }
 const nameABI = { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "payable": false, "stateMutability": "pure", "type": "function" }
 const transferABI = { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }
+const addMasterABI = { "constant": false, "inputs": [{ "name": "_nodeMaster", "type": "address" }, { "name": "_endorsor", "type": "address" }, { "name": "_identity", "type": "bytes32" }], "name": "add", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }
 
 describe('connex', () => {
 
@@ -124,6 +125,15 @@ describe('connex.thor', () => {
                 expect(clause).to.have.property('data', '0x06fdde03')
             })
 
+            it("add master by non-executor should have revert reason returned", (done) => {
+                const addMasterMethod = connex.thor.account('0x0000000000000000000000417574686f72697479').method(addMasterABI)
+                promiseWrapper(addMasterMethod.call('0x0000000000000000000000417574686f72697479', '0x0000000000000000000000417574686f72697479', '0x0000000000000000000000000000000000000000000000417574686f72697479').then(output => {
+                    expect(output).to.have.property('reverted', true)
+                    expect(output).to.have.property('decoded')
+                    expect(output.decoded).to.have.property('revertReason', 'builtin: executor required')
+                    done()
+                }), done)
+            })
         })
 
         describe('connex.thor.account(...).event', () => { 
@@ -266,6 +276,14 @@ describe('connex.thor', () => {
 })
 
 describe('connex.vendor', () => {
+
+    it('should own 0xf2e7617c45c42967fde0514b5aa6bba56e3e11dd in user account', () => {
+        expect(connex.vendor.owned('0xf2e7617c45c42967fde0514b5aa6bba56e3e11dd')).to.be.true
+    })
+
+    it('should not own 0x0000000000000000000000000000000000000000 in user account', () => {
+        expect(connex.vendor.owned('0x0000000000000000000000000000000000000000')).to.be.false
+    })
 
     it('acquire singing service should return signing service without error', () => {
         let txSigner = connex.vendor.sign('tx')
@@ -838,8 +856,17 @@ describe('error type and message', () => {
     })
 
     describe('connex.vendor', () => {
+        
+        it('invalid address should throw', () => {
+            try {
+                connex.vendor.owned('invalid')
+            } catch (err) {
+                expect(err.name).to.be.equal('BadParameter')
+                expect(err.message).to.be.equal(`'addr' expected address type`)
+            }
+        })
 
-        it('invalid type should throw ', done => {
+        it('invalid type should throw', done => {
             try {
                 connex.vendor.sign('invalid' as any)
                 done(new Error('Should throw error'))
