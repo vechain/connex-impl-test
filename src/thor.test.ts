@@ -556,7 +556,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal(`'abi' is invalid`)
+                expect(/'abi' is invalid/.test(err.message)).to.be.equal(true, `Error message should be start with 'abi' is invalid`)
                 done()
             }
         })
@@ -568,7 +568,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal(`'indexed' can not be encoded`)
+                expect(/'indexed' can not be encoded/.test(err.message)).to.be.equal(true, `Error message should be start with 'indexed' can not be encoded`)
                 done()
             }
         })
@@ -580,7 +580,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal(`'indexed' can not be encoded`)
+                expect(/'indexed' can not be encoded/.test(err.message)).to.be.equal(true, `Error message should be start with 'indexed' can not be encoded`)
                 done()
             }
         })
@@ -652,7 +652,7 @@ describe('error type and message', () => {
                 done(new Error('Should throw error'))
             } catch (err) {
                 expect(err.name).to.be.equal('BadParameter')
-                expect(err.message).to.be.equal(`'args' can not be encoded`)
+                expect(/'args' can not be encoded/.test(err.message)).to.be.equal(true, `Error message should be start with 'args' can not be encoded`)
                 done()
             }
         })
