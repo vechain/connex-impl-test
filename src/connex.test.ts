@@ -12,8 +12,8 @@ const addMasterABI = { "constant": false, "inputs": [{ "name": "_nodeMaster", "t
 
 describe('connex', () => {
 
-    it('connex should be attached to Window object', () => {
-        expect(window.connex).to.be.an('object')
+    it('connex should be attached to global object', () => {
+        expect(connex).to.be.an('object')
     })
 
     it('ensure connex object properties', () => {
