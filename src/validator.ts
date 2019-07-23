@@ -77,7 +77,7 @@ export function ensureTransactionReceipt(val: Connex.Thor.Receipt) {
     })
 }
 
-export function ensureLogMeta(val: Connex.Thor.LogMeta) {
+export function ensureLogMeta(val: Connex.Thor.Receipt.Meta) {
     expect(isBytes32(val.blockID), 'meta.blockID should be a bytes32').to.be.true
     expect(isUint64(val.blockNumber), 'meta.blockNumber should be a uint64').to.be.true
     expect(isUint32(val.blockTimestamp), 'meta.blockTimestamp should be a uint32').to.be.true
