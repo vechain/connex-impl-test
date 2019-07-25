@@ -11,14 +11,14 @@
   "dependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@vechain/connex-framework": "^1.0.0-beta-2",
+    "@vechain/connex-framework": "^1.0.0-beta-4",
     "@vechain/connex.driver-nodejs": "^1.0.0-beta-2",
-    "mocha": "^6.2.0",
-    "thor-devkit": "^0.8.1",
-    "ts-node": "^8.3.0",
     "@vue/cli-plugin-typescript": "^3.2.0",
     "@vue/cli-service": "^3.2.0",
     "chai": "^4.2.0",
+    "mocha": "^6.2.0",
+    "thor-devkit": "^0.8.1",
+    "ts-node": "^8.3.0",
     "typescript": "^3.0.0",
     "vue-template-compiler": "^2.5.21"
   },

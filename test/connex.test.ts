@@ -31,4 +31,5 @@ before(function () {
 })
 
 require('../src/connex.test')
+require('../src/error-type.test')
 
