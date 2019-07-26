@@ -8,8 +8,7 @@ mocha.setup({
 })
 
 // mocha needs to be set-upped before import test codes
-require('./connex.test')
-require('./error-type.test')
+require('connex-tests')
 
 // mocha.checkLeaks()
 mocha.run()
